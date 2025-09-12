@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Link se Photo Add / Preview</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9fb; color: #222; }
+    .upload-link {
+      display: inline-block;
+      padding: 10px 14px;
+      background: #1f8ef1;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      cursor: pointer;
+    }
+    .upload-link:hover { opacity: 0.95; }
+    #preview {
+      margin-top: 20px;
+      min-height: 120px;
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    #preview img {
+      max-width: 240px;
+      max-height: 180px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .note { margin-top: 12px; color: #555; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <h2>Photo add karne ka demo</h2>
+
+  <!-- Ye "link" dikhega, par actually file input trigger karega -->
+  <a id="choosePhoto" class="upload-link">Photo choose karo</a>
+
+  <!-- Hidden file input (isko direct show nahi karte) -->
+  <input id="fileInput" type="file" accept="image/*" style="display:none" />
+
+  <div id="preview" aria-live="polite"></div>
+
+  <p class="note">Tip: sirf image files (jpg, png, gif) choose karo. Multiple images ke liye नीचे alternate code dekho.</p>
+
+  <script>
+    // Elements
+    const choosePhoto = document.getElementById('choosePhoto');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+
+    // 1) Link pe click -> hidden file input ko click karvao
+    choosePhoto.addEventListener('click', function(e) {
+      e.preventDefault(); // agar <a href> ho to page reload na ho
+      fileInput.click();
+    });
+
+    // 2) jab file select ho jaye
+    fileInput.addEventListener('change', function() {
+      const files = fileInput.files;
+      if (!files || files.length === 0) return;
+
+      // Clear previous preview (optional)
+      preview.innerHTML = '';
+
+      // Agar single file चाहिए तो files[0] use करो; नीचे multiple support भी है
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // Validate image type
+        if (!file.type.startsWith('image/')) {
+          const p = document.createElement('p');
+          p.textContent = `${file.name} - image file nahi hai.`;
+          preview.appendChild(p);
+          continue;
+        }
+
+        // FileReader se preview banao
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = document.createElement('img');
+          img.src = event.target.result; // base64 data URL
+          img.alt = file.name;
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // (Optional) agar baar-baar same file choose karne par change event nahi चलता,
+      // to input.value = '' karke reset kar sakte ho:
+      fileInput.value = '';
+    });
+  </script>
+
+</body>
+</html>
